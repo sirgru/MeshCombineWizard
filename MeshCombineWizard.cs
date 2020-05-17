@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 public class MeshCombineWizard : ScriptableWizard
 {
 	public GameObject combineParent;
+	public bool is32bit = true;
 
 	[MenuItem("E.S. Tools/Mesh Combine Wizard")]
 	static void CreateWizard()
@@ -82,7 +83,8 @@ public class MeshCombineWizard : ScriptableWizard
 			}
 
 			// Create a new mesh using the combined properties
-			Mesh combinedMesh = new Mesh { indexFormat = IndexFormat.UInt32 };
+			var format = is32bit? IndexFormat.UInt32 : IndexFormat.UInt16;
+			Mesh combinedMesh = new Mesh { indexFormat = format };
 			combinedMesh.CombineMeshes(combine);
 
 			// Create asset
