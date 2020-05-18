@@ -14,13 +14,11 @@ Put the provided script in any Editor folder. In the Menu Bar a new entry will a
 ## Known limitations:
 * Does not support objects with multiple materials on submeshes. Such meshes should be split in an external 3D tool, so that there is only a single material per mesh.
 * Does not migrate components from the original other than MeshFilter and MeshRenderer.
+* The default setting is using 32 bit indexes. From https://docs.unity3d.com/ScriptReference/Rendering.IndexFormat.UInt32.html (Note that GPU support for 32 bit indices is not guaranteed on all platforms; for example Android devices with Mali-400 GPU do not support them. When using 32 bit indices on such a platform, a warning message will be logged and mesh will not render.) If the combined mesh has less than 65535 vertices, it is safe to uncheck the 32-bit option in the window (otherwise meshes will be garbled). 
 
 ## Versions:
 2.0 - Added proper support for meshes with over 65K verts. Hardened the script and commented for public consumption.
 1.0 - Original release
-
-
-
 
 
 
