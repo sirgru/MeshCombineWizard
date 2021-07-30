@@ -1,11 +1,10 @@
-#if (UNITY_EDITOR)
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System.IO;
 
-
+#if (UNITY_EDITOR)
 public class MeshCombineWizard : ScriptableWizard
 {
 	public GameObject combineParent;
@@ -16,7 +15,7 @@ public class MeshCombineWizard : ScriptableWizard
 	[TextArea(1,1)]
 	public string assetPath = "Assets/CombinedMesh/Assets/";
 
-	[MenuItem("E.Z.Combine/Mesh Combine Wizard")]
+	[MenuItem("E.S. Tools/Mesh Combine Wizard")]
 	static void CreateWizard()
 	{
 		var wizard = DisplayWizard<MeshCombineWizard>("Mesh Combine Wizard");
