@@ -1,14 +1,22 @@
+#if (UNITY_EDITOR)
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using System.IO;
+
 
 public class MeshCombineWizard : ScriptableWizard
 {
 	public GameObject combineParent;
 	public bool is32bit = true;
+	[Space(10)] 
+	[TextArea(1,1)]
+	public string prefabPath = "Assets/CombinedMesh/";
+	[TextArea(1,1)]
+	public string assetPath = "Assets/CombinedMesh/Assets/";
 
-	[MenuItem("E.S. Tools/Mesh Combine Wizard")]
+	[MenuItem("E.Z.Combine/Mesh Combine Wizard")]
 	static void CreateWizard()
 	{
 		var wizard = DisplayWizard<MeshCombineWizard>("Mesh Combine Wizard");
@@ -39,6 +47,12 @@ public class MeshCombineWizard : ScriptableWizard
 		// Locals
 		Dictionary<Material, List<MeshFilter>> materialToMeshFilterList = new Dictionary<Material, List<MeshFilter>>();
 		List<GameObject> combinedObjects = new List<GameObject>();
+		if(AssetDatabase.IsValidFolder(prefabPath) == false){
+			Directory.CreateDirectory(prefabPath);
+		}
+		if(AssetDatabase.IsValidFolder(assetPath) == false){
+			Directory.CreateDirectory(assetPath);
+		}
 
 		MeshFilter[] meshFilters = combineParent.GetComponentsInChildren<MeshFilter>();
 
@@ -86,10 +100,11 @@ public class MeshCombineWizard : ScriptableWizard
 			var format = is32bit? IndexFormat.UInt32 : IndexFormat.UInt16;
 			Mesh combinedMesh = new Mesh { indexFormat = format };
 			combinedMesh.CombineMeshes(combine);
+			Unwrapping.GenerateSecondaryUVSet(combinedMesh);
 
 			// Create asset
 			materialName += "_" + combinedMesh.GetInstanceID();
-			AssetDatabase.CreateAsset(combinedMesh, "Assets/CombinedMeshes_" + materialName + ".asset");
+			AssetDatabase.CreateAsset(combinedMesh, assetPath + materialName + ".asset");
 
 			// Create game object
 			string goName = (materialToMeshFilterList.Count > 1)? "CombinedMeshes_" + materialName : "CombinedMeshes_" + combineParent.name;
@@ -112,7 +127,7 @@ public class MeshCombineWizard : ScriptableWizard
 		}
 
 		// Create prefab
-		Object prefab = PrefabUtility.CreateEmptyPrefab("Assets/" + resultGO.name + ".prefab");
+		Object prefab = PrefabUtility.CreateEmptyPrefab(prefabPath + resultGO.name + ".prefab");
 		PrefabUtility.ReplacePrefab(resultGO, prefab, ReplacePrefabOptions.ConnectToPrefab);
 
 		// Disable the original and return both to original positions
@@ -121,3 +136,5 @@ public class MeshCombineWizard : ScriptableWizard
 		resultGO.transform.position = originalPosition;
 	}
 }
+
+#endif
