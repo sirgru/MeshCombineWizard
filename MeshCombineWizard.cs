@@ -10,12 +10,15 @@ public class MeshCombineWizard : ScriptableWizard
 	public GameObject combineParent;
 	public bool is32bit = true;
 	[Space(10)] 
+	public bool generateLightmap = true;
+	public bool generatePrefab = false;
+	[Space(10)] 
 	[TextArea(1,1)]
 	public string prefabPath = "Assets/CombinedMesh/";
 	[TextArea(1,1)]
 	public string assetPath = "Assets/CombinedMesh/Assets/";
-
-	[MenuItem("E.S. Tools/Mesh Combine Wizard")]
+	
+	[MenuItem("DarrowTools/Mesh Combine Wizard")]
 	static void CreateWizard()
 	{
 		var wizard = DisplayWizard<MeshCombineWizard>("Mesh Combine Wizard");
@@ -99,11 +102,16 @@ public class MeshCombineWizard : ScriptableWizard
 			var format = is32bit? IndexFormat.UInt32 : IndexFormat.UInt16;
 			Mesh combinedMesh = new Mesh { indexFormat = format };
 			combinedMesh.CombineMeshes(combine);
-			Unwrapping.GenerateSecondaryUVSet(combinedMesh);
-
+			if(generateLightmap == true){
+				Unwrapping.GenerateSecondaryUVSet(combinedMesh);
+			}
+			
 			// Create asset
-			materialName += "_" + combinedMesh.GetInstanceID();
-			AssetDatabase.CreateAsset(combinedMesh, assetPath + materialName + ".asset");
+			if(generatePrefab == true){
+				materialName += "_" + combinedMesh.GetInstanceID();
+				AssetDatabase.CreateAsset(combinedMesh, assetPath + materialName + ".asset");
+			}
+			
 
 			// Create game object
 			string goName = (materialToMeshFilterList.Count > 1)? "CombinedMeshes_" + materialName : "CombinedMeshes_" + combineParent.name;
@@ -126,9 +134,12 @@ public class MeshCombineWizard : ScriptableWizard
 		}
 
 		// Create prefab
-		Object prefab = PrefabUtility.CreateEmptyPrefab(prefabPath + resultGO.name + ".prefab");
-		PrefabUtility.ReplacePrefab(resultGO, prefab, ReplacePrefabOptions.ConnectToPrefab);
-
+		
+		if(generatePrefab == true){
+			Object prefab = PrefabUtility.CreateEmptyPrefab(prefabPath + resultGO.name + ".prefab");
+			PrefabUtility.ReplacePrefab(resultGO, prefab, ReplacePrefabOptions.ConnectToPrefab);
+		}
+		
 		// Disable the original and return both to original positions
 		combineParent.SetActive(false);
 		combineParent.transform.position = originalPosition;
