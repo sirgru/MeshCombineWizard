@@ -20,5 +20,6 @@ Put the provided script in any Editor folder. In the Menu Bar a new entry will a
 2.0 - Added proper support for meshes with over 65K verts. Hardened the script and commented for public consumption.
 1.0 - Original release
 
-
+## State
+This small script is no longer maintained, which may result in obsoletion warnings on newer Unity versions.
 
