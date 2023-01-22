@@ -2,13 +2,14 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
-
-#if (UNITY_EDITOR)
+using System.IO;
 
 public class MeshCombineWizard : ScriptableWizard
 {
 	public GameObject combineParent;
+	public string resultPath = "";
 	public bool is32bit = true;
+	public bool generateSecondaryUVs = false;
 
 	[MenuItem("E.S. Tools/Mesh Combine Wizard")]
 	static void CreateWizard()
@@ -33,6 +34,12 @@ public class MeshCombineWizard : ScriptableWizard
 			return;
 		}
 
+		var assetFolderResultPath = Path.Combine("Assets/", resultPath ?? "");
+		if (!Directory.Exists(assetFolderResultPath)) {
+			Debug.LogError("Mesh Combine Wizard: 'Result Path' does not exist. Specified path must exist as relative to Assets folder. Operation cancelled.");
+			return;
+		}
+
 		// Remember the original position of the object. 
 		// For the operation to work, the position must be temporarily set to (0,0,0).
 		Vector3 originalPosition = combineParent.transform.position;
@@ -48,13 +55,13 @@ public class MeshCombineWizard : ScriptableWizard
 		foreach (var meshFilter in meshFilters) {
 			var meshRenderer = meshFilter.GetComponent<MeshRenderer>();
 			if (meshRenderer == null) {
-				Debug.LogWarning("The Mesh Filter on object " + meshFilter.name + " has no Mesh Renderer component attached. Skipping.");
+				Debug.LogWarning("Mesh Combine Wizard: The Mesh Filter on object " + meshFilter.name + " has no Mesh Renderer component attached. Skipping.");
 				continue;
 			}
 			
 			var materials = meshRenderer.sharedMaterials;
 			if (materials == null) {
-				Debug.LogWarning("The Mesh Renderer on object " + meshFilter.name + " has no material assigned. Skipping.");
+				Debug.LogWarning("Mesh Combine Wizard: The Mesh Renderer on object " + meshFilter.name + " has no material assigned. Skipping.");
 				continue;
 			}
 
@@ -62,7 +69,7 @@ public class MeshCombineWizard : ScriptableWizard
 			if (materials.Length > 1) {
 				// Rollback: return the object to original position
 				combineParent.transform.position = originalPosition;
-				Debug.LogError("Objects with multiple materials on the same mesh are not supported. Create multiple meshes from this object's sub-meshes in an external 3D tool and assign separate materials to each. Operation cancelled.");
+				Debug.LogError("Mesh Combine Wizard: Objects with multiple materials on the same mesh are not supported. Create multiple meshes from this object's sub-meshes in an external 3D tool and assign separate materials to each. Operation cancelled.");
 				return;
 			}
 			var material = materials[0];
@@ -72,7 +79,7 @@ public class MeshCombineWizard : ScriptableWizard
 			else materialToMeshFilterList.Add(material, new List<MeshFilter>() { meshFilter });
 		}
 
-		// For each material, create a new merged object, in the scene and in the assets folder.
+		// For each material, create a new merged object, in the scene and in the assets.
 		foreach (var entry in materialToMeshFilterList) {
 			List<MeshFilter> meshesWithSameMaterial = entry.Value;
 			// Create a convenient material name
@@ -88,11 +95,17 @@ public class MeshCombineWizard : ScriptableWizard
 			var format = is32bit? IndexFormat.UInt32 : IndexFormat.UInt16;
 			Mesh combinedMesh = new Mesh { indexFormat = format };
 			combinedMesh.CombineMeshes(combine);
-			Unwrapping.GenerateSecondaryUVSet(combinedMesh);
+
+			if (generateSecondaryUVs) {
+				var secondaryUVsResult = Unwrapping.GenerateSecondaryUVSet(combinedMesh);
+				if (!secondaryUVsResult) {
+					Debug.LogWarning("Mesh Combine Wizard: Could not generate secondary UVs. See https://docs.unity3d.com/2022.2/Documentation/ScriptReference/Unwrapping.GenerateSecondaryUVSet.html");
+				}
+			}
 
 			// Create asset
 			materialName += "_" + combinedMesh.GetInstanceID();
-			AssetDatabase.CreateAsset(combinedMesh, "Assets/CombinedMeshes_" + materialName + ".asset");
+			AssetDatabase.CreateAsset(combinedMesh, Path.Combine(assetFolderResultPath, "CombinedMeshes_" + materialName + ".asset"));
 
 			// Create game object
 			string goName = (materialToMeshFilterList.Count > 1)? "CombinedMeshes_" + materialName : "CombinedMeshes_" + combineParent.name;
@@ -104,7 +117,7 @@ public class MeshCombineWizard : ScriptableWizard
 			combinedObjects.Add(combinedObject);
 		}
 
-		// If there were more than one material, and thus multiple GOs created, parent them and work with result
+		// If there was more than one material, and thus multiple GOs created, parent them and work with result
 		GameObject resultGO = null;
 		if (combinedObjects.Count > 1) {
 			resultGO = new GameObject("CombinedMeshes_" + combineParent.name);
@@ -115,8 +128,8 @@ public class MeshCombineWizard : ScriptableWizard
 		}
 
 		// Create prefab
-		Object prefab = PrefabUtility.CreateEmptyPrefab("Assets/" + resultGO.name + ".prefab");
-		PrefabUtility.ReplacePrefab(resultGO, prefab, ReplacePrefabOptions.ConnectToPrefab);
+		var prefabPath = Path.Combine(assetFolderResultPath, resultGO.name + ".prefab");
+		PrefabUtility.SaveAsPrefabAssetAndConnect(resultGO, prefabPath, InteractionMode.UserAction);
 
 		// Disable the original and return both to original positions
 		combineParent.SetActive(false);
@@ -124,5 +137,3 @@ public class MeshCombineWizard : ScriptableWizard
 		resultGO.transform.position = originalPosition;
 	}
 }
-
-#endif
