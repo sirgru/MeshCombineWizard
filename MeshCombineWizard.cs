@@ -11,7 +11,7 @@ public class MeshCombineWizard : ScriptableWizard
 	public bool is32bit = true;
 	public bool generateSecondaryUVs = false;
 
-	[MenuItem("E.S. Tools/Mesh Combine Wizard")]
+	[MenuItem("Ennoble Tools/Mesh Combine Wizard")]
 	static void CreateWizard()
 	{
 		var wizard = DisplayWizard<MeshCombineWizard>("Mesh Combine Wizard");

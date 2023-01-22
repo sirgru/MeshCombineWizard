@@ -2,7 +2,7 @@
 Running the wizard will combine all the meshes on the chosen Game Object and its children which share the same material. If there is more than a single material in all sub-objects, sub-objects will be created in the result so that each corresponds to a single material. A prefab will be created from the combined Game Object, with all the newly created merged meshes. The original will be set inactive in the scene and the combined Game Object will be put in its position.
 
 ## How does it work?
-Put the provided script in a folder called _Editor_. In the Menu Bar a new entry will appear ("E.S. Tools/Mesh Combine Wizard"). Picking this option will show the wizard dialog. The parent of objects to be combined should be assigned to a field called _Combine Parent_, which may be auto-assigned based on existing editor selection. 
+Put the provided script in a folder called _Editor_. In the Menu Bar a new entry will appear ("Ennoble Tools/Mesh Combine Wizard"). Picking this option will show the wizard dialog. The parent of objects to be combined should be assigned to a field called _Combine Parent_, which may be auto-assigned based on existing editor selection. 
 
 Variable _Result Path_ is an optional string representing a path relative to the 'Assets/' folder, inside which the result mesh and prefab will be created. Leave blank to place the result in the 'Assets/' folder.
 
