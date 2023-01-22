@@ -3,6 +3,8 @@ using UnityEditor;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
+#if (UNITY_EDITOR)
+
 public class MeshCombineWizard : ScriptableWizard
 {
 	public GameObject combineParent;
@@ -86,6 +88,7 @@ public class MeshCombineWizard : ScriptableWizard
 			var format = is32bit? IndexFormat.UInt32 : IndexFormat.UInt16;
 			Mesh combinedMesh = new Mesh { indexFormat = format };
 			combinedMesh.CombineMeshes(combine);
+			Unwrapping.GenerateSecondaryUVSet(combinedMesh);
 
 			// Create asset
 			materialName += "_" + combinedMesh.GetInstanceID();
@@ -121,3 +124,5 @@ public class MeshCombineWizard : ScriptableWizard
 		resultGO.transform.position = originalPosition;
 	}
 }
+
+#endif
